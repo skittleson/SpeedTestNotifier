@@ -4,6 +4,8 @@ Runs an internet speed test to notify the current download speed then sends a Wi
 
 ## Quick Start 🚀
 
+Install the speed test cli `pip install speedtest-cli` from this repo: https://github.com/sivel/speedtest-cli
+
 Clone the repo:
 ```bash
 dotnet run
