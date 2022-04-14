@@ -1,9 +1,12 @@
-﻿using CommunityToolkit.WinUI.Notifications;
+﻿using CommandLine;
+using CommunityToolkit.WinUI.Notifications;
 using SpeedTestNotifier;
 using System.Text.Json;
 using static SimpleExec.Command;
 
 Console.WriteLine("Speed Test Notifier for Windows 10!");
+var argsOptions = Parser.Default.ParseArguments<ArgsOptions>(args);
+
 var (standardOutput1, standardError1) = await ReadAsync("speedtest-cli", "--json --no-upload");
 if (!string.IsNullOrEmpty(standardOutput1))
 {
@@ -17,10 +20,16 @@ if (!string.IsNullOrEmpty(standardOutput1))
     {
         var downloadMbps = downloadBytes / 1024 / 1024;
         Console.WriteLine($"{downloadMbps}Mbps");
+        var downloadMin = 30u;
+        argsOptions.WithParsed<ArgsOptions>(o => {
+            if (o.DownloadMin.HasValue) {
+                downloadMin = o.DownloadMin.Value;
+            }
+        });
         var toast = new ToastContentBuilder()
             .AddHeader("speedtest-cli", "Speed Test", "")
             .AddText($"{downloadMbps:F2}Mbps Download")
-            .SetToastDuration(downloadMbps < 30 ? ToastDuration.Long : ToastDuration.Short);
+            .SetToastDuration(downloadMbps < downloadMin ? ToastDuration.Long : ToastDuration.Short);
 
         toast.Show();
 
@@ -35,6 +44,15 @@ else
     Console.WriteLine(standardError1);
     Thread.Sleep(TimeSpan.FromSeconds(3));
     Environment.Exit(1);
+}
+
+
+
+public class ArgsOptions
+{
+
+    [Option('d', "download-min", Required = false, HelpText = "Set Download Minimal Threshold")]
+    public uint? DownloadMin { get; set; }
 }
 
 
